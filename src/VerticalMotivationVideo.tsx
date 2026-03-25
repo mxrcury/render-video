@@ -5,14 +5,22 @@ import {
   Img,
   OffthreadVideo,
   Sequence,
+  staticFile,
   interpolate,
   useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
-import {toMediaSource} from './media';
 import type {RenderPayload} from './types';
 
 const isVideoFile = (fileName: string) => /\.(mp4|mov|webm|m4v)$/i.test(fileName);
+
+const resolveMediaSource = (filePath: string) => {
+  if (/^(https?:)?\/\//i.test(filePath) || filePath.startsWith('/')) {
+    return filePath;
+  }
+
+  return staticFile(filePath);
+};
 
 const CaptionLine: React.FC<{
   text: string;
@@ -62,61 +70,16 @@ const CaptionLine: React.FC<{
   );
 };
 
-const toFrame = (ms: number, fps: number) => Math.max(0, Math.round((ms / 1000) * fps));
-
-const buildCaptionTimeline = ({
-  lines,
-  durationInFrames,
-  fps,
-  lineStartTimesMs,
-}: {
-  lines: string[];
-  durationInFrames: number;
-  fps: number;
-  lineStartTimesMs?: number[];
-}) => {
-  const safeLines = lines.length > 0 ? lines : [''];
-
-  if (!lineStartTimesMs || lineStartTimesMs.length !== safeLines.length) {
-    const framesPerLine = Math.max(1, Math.floor(durationInFrames / safeLines.length));
-    return safeLines.map((text, index) => ({
-      text,
-      startFrame: index * framesPerLine,
-      durationInFrames:
-        index === safeLines.length - 1
-          ? durationInFrames - index * framesPerLine
-          : framesPerLine,
-    }));
-  }
-
-  return safeLines.map((text, index) => {
-    const startFrame = toFrame(lineStartTimesMs[index], fps);
-    const nextStartFrame =
-      index < safeLines.length - 1 ? toFrame(lineStartTimesMs[index + 1], fps) : durationInFrames;
-
-    return {
-      text,
-      startFrame,
-      durationInFrames: Math.max(1, nextStartFrame - startFrame),
-    };
-  });
-};
-
 export const VerticalMotivationVideo: React.FC<RenderPayload> = ({
   background,
   voice,
   music,
   lines,
-  lineStartTimesMs,
 }) => {
-  const {durationInFrames, fps} = useVideoConfig();
-  const backgroundSource = toMediaSource(background);
-  const captionTimeline = buildCaptionTimeline({
-    lines,
-    durationInFrames,
-    fps,
-    lineStartTimesMs,
-  });
+  const {durationInFrames} = useVideoConfig();
+  const safeLines = lines.length > 0 ? lines : [''];
+  const framesPerLine = Math.max(1, Math.floor(durationInFrames / safeLines.length));
+  const backgroundSource = resolveMediaSource(background);
 
   return (
     <AbsoluteFill style={{backgroundColor: '#050505'}}>
@@ -128,7 +91,7 @@ export const VerticalMotivationVideo: React.FC<RenderPayload> = ({
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            opacity: 0.5,
+            opacity: 0.34,
           }}
         />
       ) : (
@@ -138,7 +101,7 @@ export const VerticalMotivationVideo: React.FC<RenderPayload> = ({
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            opacity: 0.42,
+            opacity: 0.22,
           }}
         />
       )}
@@ -146,21 +109,25 @@ export const VerticalMotivationVideo: React.FC<RenderPayload> = ({
       <AbsoluteFill
         style={{
           background:
-            'linear-gradient(180deg, rgba(0, 0, 0, 0.38) 0%, rgba(0, 0, 0, 0.56) 100%)',
+            'linear-gradient(180deg, rgba(0, 0, 0, 0.68) 0%, rgba(0, 0, 0, 0.76) 100%)',
         }}
       />
 
-      {captionTimeline.map((cue, index) => (
+      {safeLines.map((line, index) => (
         <CaptionLine
-          key={`${index}-${cue.text}`}
-          text={cue.text}
-          startFrame={cue.startFrame}
-          durationInFrames={cue.durationInFrames}
+          key={`${index}-${line}`}
+          text={line}
+          startFrame={index * framesPerLine}
+          durationInFrames={
+            index === safeLines.length - 1
+              ? durationInFrames - index * framesPerLine
+              : framesPerLine
+          }
         />
       ))}
 
-      <Audio src={toMediaSource(voice)} />
-      <Audio src={toMediaSource(music)} volume={0.12} />
+      <Audio src={resolveMediaSource(voice)} />
+      <Audio src={resolveMediaSource(music)} volume={0.12} />
     </AbsoluteFill>
   );
 };

@@ -12,5 +12,6 @@
     "Discipline accumulates quietly.",
     "Small pain. Lasting value.",
     "Decide."
-  ]
+  ],
+  "lineStartTimesMs": [0, 1300, 2600, 3900, 5300, 6700, 7900, 9300, 10600]
 }

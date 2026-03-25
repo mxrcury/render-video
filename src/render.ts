@@ -11,6 +11,30 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 const entryPoint = path.join(projectRoot, 'src', 'index.ts');
 
+const assertValidLineTimes = (payload: RenderPayload) => {
+  if (!payload.lineStartTimesMs) {
+    return;
+  }
+
+  if (!Array.isArray(payload.lineStartTimesMs)) {
+    throw new Error('Invalid payload. lineStartTimesMs must be an array of numbers.');
+  }
+
+  if (payload.lineStartTimesMs.length !== payload.lines.length) {
+    throw new Error('Invalid payload. lineStartTimesMs length must match lines length.');
+  }
+
+  payload.lineStartTimesMs.forEach((time, index) => {
+    if (typeof time !== 'number' || Number.isNaN(time) || time < 0) {
+      throw new Error(`Invalid payload. lineStartTimesMs[${index}] must be a non-negative number.`);
+    }
+
+    if (index > 0 && time < payload.lineStartTimesMs![index - 1]) {
+      throw new Error('Invalid payload. lineStartTimesMs must be in ascending order.');
+    }
+  });
+};
+
 const loadPayload = async (payloadFile: string): Promise<RenderPayload> => {
   const payloadContents = await fs.readFile(payloadFile, 'utf8');
   const payload = JSON.parse(payloadContents) as RenderPayload;
@@ -18,6 +42,8 @@ const loadPayload = async (payloadFile: string): Promise<RenderPayload> => {
   if (!payload.background || !payload.voice || !payload.music || !Array.isArray(payload.lines)) {
     throw new Error('Invalid payload. Expected background, voice, music, and lines[].');
   }
+
+  assertValidLineTimes(payload);
 
   return payload;
 };

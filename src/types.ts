@@ -3,4 +3,5 @@ export type RenderPayload = {
   voice: string;
   music: string;
   lines: string[];
+  lineStartTimesMs?: number[];
 };

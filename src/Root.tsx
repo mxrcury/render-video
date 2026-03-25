@@ -1,7 +1,8 @@
 import React from 'react';
-import {Composition, staticFile} from 'remotion';
+import {Composition} from 'remotion';
 import {getAudioDurationInSeconds} from '@remotion/media-utils';
 import {VerticalMotivationVideo} from './VerticalMotivationVideo';
+import {toMediaSource} from './media';
 import type {RenderPayload} from './types';
 
 export const REMOTION_COMPOSITION_ID = 'MotivationShort';
@@ -26,7 +27,7 @@ export const RemotionRoot: React.FC = () => {
       durationInFrames={FPS * 6}
       calculateMetadata={async ({props}) => {
         const payload = props as RenderPayload;
-        const durationInSeconds = await getAudioDurationInSeconds(staticFile(payload.voice));
+        const durationInSeconds = await getAudioDurationInSeconds(toMediaSource(payload.voice));
 
         return {
           durationInFrames: Math.max(1, Math.ceil(durationInSeconds * FPS)),

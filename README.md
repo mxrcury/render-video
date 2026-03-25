@@ -15,6 +15,7 @@ A small production-ready Remotion pipeline that renders a 1080x1920 motivational
 ├── remotion.config.ts
 ├── src/
 │   ├── index.ts
+│   ├── media.ts
 │   ├── Root.tsx
 │   ├── VerticalMotivationVideo.tsx
 │   ├── render.ts
@@ -22,7 +23,7 @@ A small production-ready Remotion pipeline that renders a 1080x1920 motivational
 └── tsconfig.json
 ```
 
-Add your input assets into `public/` using the filenames referenced by the JSON payload.
+Add your input assets into `public/` using the filenames referenced by the JSON payload. The payload supports either `background.png` or `public/background.png` style paths for local files.
 
 ## Payload format
 
@@ -41,9 +42,17 @@ Add your input assets into `public/` using the filenames referenced by the JSON 
     "Discipline accumulates quietly.",
     "Small pain. Lasting value.",
     "Decide."
-  ]
+  ],
+  "lineStartTimesMs": [0, 1300, 2600, 3900, 5300, 6700, 7900, 9300, 10600]
 }
 ```
+
+### Subtitle sync
+
+- `lineStartTimesMs` is optional but recommended for precise subtitle sync.
+- When provided, each subtitle appears exactly at its timestamp (milliseconds from voice start).
+- `lineStartTimesMs.length` must match `lines.length` and be sorted ascending.
+- If omitted, captions are split evenly across the total video duration.
 
 ## Install
 
@@ -66,7 +75,7 @@ The renderer will:
 
 ## Notes
 
-- The background can be an image or a video file.
+- The background can be an image or a video file and should exist in `public/`.
 - Captions are centered and shown one line at a time.
 - Each caption line gets a subtle fade and upward motion.
 - Music is mixed at low volume beneath the narration.

@@ -46,6 +46,7 @@ const CaptionLine: React.FC<{
             color: 'white',
             fontSize: 72,
             lineHeight: 1.15,
+            fontFamily: 'System',
             fontWeight: 700,
             letterSpacing: -1.5,
             textAlign: 'center',

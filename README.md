@@ -23,7 +23,7 @@ A small production-ready Remotion pipeline that renders a 1080x1920 motivational
 └── tsconfig.json
 ```
 
-Add your input assets into `public/` using the filenames referenced by the JSON payload. The payload supports either `background.png` or `public/background.png` style paths for local files.
+Add your input assets into `public/` using the filenames referenced by the JSON payload. The payload supports `background.png`, `public/background.png`, and `/public/background.png` style paths for local files.
 
 ## Payload format
 

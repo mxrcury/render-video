@@ -3,16 +3,30 @@
   "voice": "voice.mp3",
   "music": "music.mp3",
   "lines": [
-    "Comfort is a slow tax.",
-    "You pay every day.",
-    "Small compromises compound.",
-    "Excuses turn into habits.",
-    "Time doesn't ask permission.",
-    "Comfort or growth.",
-    "Discipline accumulates quietly.",
-    "Small pain. Lasting value.",
-    "Decide."
+    "You think you need luck.",
+    "You don’t.",
+    "You need discipline.",
+    "Daily.",
+    "Boring.",
+    "Consistent.",
+    "Luck doesn’t build results.",
+    "Habits do.",
+    "What you repeat",
+    "becomes your life.",
+    "Choose wisely."
   ],
-  "lineStartTimesMs": [0, 1300, 2600, 3900, 5300, 6700, 7900, 9300, 10600],
+  "lineStartTimesMs": [
+    0,
+    1200,
+    2100,
+    3300,
+    4200,
+    5100,
+    6200,
+    7900,
+    9000,
+    10200,
+    11500
+  ],
   "lineStartTimesUnit": "ms"
 }

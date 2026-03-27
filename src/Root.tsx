@@ -12,7 +12,7 @@ const defaultProps: RenderPayload = {
   background: 'background.png',
   voice: 'voice.mp3',
   music: 'music.mp3',
-  lines: ['Comfort is a slow tax.', 'Decide.'],
+  lines: ['You think you need luck.', 'You don’t.', 'Choose wisely.'],
 };
 
 export const RemotionRoot: React.FC = () => {

@@ -65,6 +65,13 @@ const loadPayload = async (payloadFile: string): Promise<RenderPayload> => {
     throw new Error('Invalid payload. Expected background, voice, music, and lines[].');
   }
 
+  if (
+    payload.autoDetectLineStartTimesFromVoice !== undefined &&
+    typeof payload.autoDetectLineStartTimesFromVoice !== 'boolean'
+  ) {
+    throw new Error('Invalid payload. autoDetectLineStartTimesFromVoice must be a boolean.');
+  }
+
   assertValidLineTimes(payload);
 
   return payload;
@@ -144,7 +151,8 @@ const inferLineStartTimesFromVoice = async ({
 };
 
 const applyAutoDetectedLineStarts = async (payload: RenderPayload): Promise<RenderPayload> => {
-  const shouldAutoDetect = payload.autoDetectLineStartTimesFromVoice || !payload.lineStartTimesMs;
+  const hasManualLineTimes = Array.isArray(payload.lineStartTimesMs) && payload.lineStartTimesMs.length > 0;
+  const shouldAutoDetect = !hasManualLineTimes && payload.autoDetectLineStartTimesFromVoice !== false;
 
   if (!shouldAutoDetect) {
     return payload;
@@ -170,7 +178,11 @@ const applyAutoDetectedLineStarts = async (payload: RenderPayload): Promise<Rend
       };
     }
   } catch (error) {
-    console.warn('Auto-detect line timings skipped:', error);
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      console.warn('Auto-detect line timings skipped: ffmpeg is not installed. Using fallback subtitle timing.');
+    } else {
+      console.warn('Auto-detect line timings skipped due to analysis error. Using fallback subtitle timing.');
+    }
   }
 
   return payload;

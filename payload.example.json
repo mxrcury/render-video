@@ -1,0 +1,18 @@
+{
+  "background": "background.png",
+  "voice": "voice.mp3",
+  "music": "music.mp3",
+  "lines": [
+    "Comfort is a slow tax.",
+    "You pay every day.",
+    "Small compromises compound.",
+    "Excuses turn into habits.",
+    "Time doesn't ask permission.",
+    "Comfort or growth.",
+    "Discipline accumulates quietly.",
+    "Small pain. Lasting value.",
+    "Decide."
+  ],
+  "lineStartTimesMs": [0, 1300, 2600, 3900, 5300, 6700, 7900, 9300, 10600],
+  "lineStartTimesUnit": "ms"
+}

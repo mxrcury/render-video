@@ -46,7 +46,8 @@ Add your input assets into `public/` using the filenames referenced by the JSON 
     "Choose wisely."
   ],
   "lineStartTimesMs": [0, 1200, 2100, 3300, 4200, 5100, 6200, 7900, 9000, 10200, 11500],
-  "lineStartTimesUnit": "ms"
+  "lineStartTimesUnit": "ms",
+  "autoDetectLineStartTimesFromVoice": true
 }
 ```
 
@@ -54,9 +55,10 @@ Add your input assets into `public/` using the filenames referenced by the JSON 
 
 - `lineStartTimesMs` is optional but recommended for precise subtitle sync.
 - `lineStartTimesUnit` can be `"ms"` or `"s"` (optional).
+- `autoDetectLineStartTimesFromVoice` (optional) tries to detect phrase starts from narration audio pauses using `ffmpeg`.
 - If `lineStartTimesUnit` is omitted, the renderer auto-detects `s` vs `ms` to reduce timing mismatch.
 - `lineStartTimesMs.length` must match `lines.length` and be sorted ascending.
-- If timing data is omitted, captions are split evenly across the total video duration.
+- If timing data is omitted, captions are auto-generated from voice pauses (or evenly split if detection is unavailable).
 
 ## Install
 
@@ -76,6 +78,8 @@ The renderer will:
 - read the payload,
 - calculate the composition duration from the narration audio,
 - render the vertical MP4 via `renderMedia()`.
+
+If ffmpeg is available, subtitle starts can be inferred directly from narration silence boundaries.
 
 ## Notes
 

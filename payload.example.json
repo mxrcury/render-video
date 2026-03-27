@@ -28,5 +28,6 @@
     10200,
     11500
   ],
-  "lineStartTimesUnit": "ms"
+  "lineStartTimesUnit": "ms",
+  "autoDetectLineStartTimesFromVoice": true
 }

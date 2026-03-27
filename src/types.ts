@@ -5,4 +5,5 @@ export type RenderPayload = {
   lines: string[];
   lineStartTimesMs?: number[];
   lineStartTimesUnit?: 'ms' | 's';
+  autoDetectLineStartTimesFromVoice?: boolean;
 };

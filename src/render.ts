@@ -1,6 +1,9 @@
 import {bundle} from '@remotion/bundler';
+import {getAudioDurationInSeconds} from '@remotion/media-utils';
 import {getCompositions, renderMedia} from '@remotion/renderer';
+import {execFile} from 'node:child_process';
 import fs from 'node:fs/promises';
+import {promisify} from 'node:util';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {REMOTION_COMPOSITION_ID} from './Root';
@@ -10,6 +13,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 const entryPoint = path.join(projectRoot, 'src', 'index.ts');
+const execFileAsync = promisify(execFile);
+
+const toVoiceFilePath = (voice: string) => {
+  if (/^https?:\/\//i.test(voice)) {
+    return null;
+  }
+
+  if (path.isAbsolute(voice) && !voice.startsWith('/public/')) {
+    return voice;
+  }
+
+  const normalized = voice.replaceAll('\\', '/').replace(/^(\.\/|\/)?public\//i, '');
+  return path.resolve(projectRoot, 'public', normalized);
+};
+
 
 const assertValidLineTimes = (payload: RenderPayload) => {
   if (!payload.lineStartTimesMs) {
@@ -52,6 +70,112 @@ const loadPayload = async (payloadFile: string): Promise<RenderPayload> => {
   return payload;
 };
 
+const fitStartTimesToLines = ({
+  startsInSeconds,
+  linesCount,
+  durationInSeconds,
+}: {
+  startsInSeconds: number[];
+  linesCount: number;
+  durationInSeconds: number;
+}) => {
+  if (linesCount <= 0) {
+    return [];
+  }
+
+  const uniqueStarts = Array.from(new Set(startsInSeconds.map((value) => Number(value.toFixed(3))))).sort(
+    (a, b) => a - b,
+  );
+
+  const withZero = uniqueStarts[0] === 0 ? uniqueStarts : [0, ...uniqueStarts];
+
+  if (withZero.length === linesCount) {
+    return withZero;
+  }
+
+  if (withZero.length > linesCount) {
+    return Array.from({length: linesCount}, (_, index) => {
+      const mappedIndex = Math.round((index * (withZero.length - 1)) / Math.max(1, linesCount - 1));
+      return withZero[mappedIndex];
+    });
+  }
+
+  const remaining = linesCount - withZero.length;
+  const tailStart = withZero[withZero.length - 1] ?? 0;
+  const availableSeconds = Math.max(0.2, durationInSeconds - tailStart);
+
+  const filledTail = Array.from({length: remaining}, (_, index) => {
+    const ratio = (index + 1) / (remaining + 1);
+    return tailStart + availableSeconds * ratio;
+  });
+
+  return [...withZero, ...filledTail];
+};
+
+const inferLineStartTimesFromVoice = async ({
+  voicePath,
+  linesCount,
+}: {
+  voicePath: string;
+  linesCount: number;
+}) => {
+  const {stderr} = await execFileAsync('ffmpeg', [
+    '-hide_banner',
+    '-i',
+    voicePath,
+    '-af',
+    'silencedetect=noise=-35dB:d=0.22',
+    '-f',
+    'null',
+    '-',
+  ]);
+
+  const matches = Array.from(stderr.matchAll(/silence_end:\s*([0-9]+(?:\.[0-9]+)?)/g));
+  const silenceEndStarts = matches.map((match) => Number(match[1])).filter((value) => Number.isFinite(value));
+
+  const durationInSeconds = await getAudioDurationInSeconds(voicePath);
+  const fittedStartsInSeconds = fitStartTimesToLines({
+    startsInSeconds: [0, ...silenceEndStarts],
+    linesCount,
+    durationInSeconds,
+  });
+
+  return fittedStartsInSeconds.map((seconds) => Math.max(0, Math.floor(seconds * 1000)));
+};
+
+const applyAutoDetectedLineStarts = async (payload: RenderPayload): Promise<RenderPayload> => {
+  const shouldAutoDetect = payload.autoDetectLineStartTimesFromVoice || !payload.lineStartTimesMs;
+
+  if (!shouldAutoDetect) {
+    return payload;
+  }
+
+  try {
+    const voicePath = toVoiceFilePath(payload.voice);
+
+    if (!voicePath) {
+      return payload;
+    }
+
+    const detectedStartsMs = await inferLineStartTimesFromVoice({
+      voicePath,
+      linesCount: payload.lines.length,
+    });
+
+    if (detectedStartsMs.length === payload.lines.length) {
+      return {
+        ...payload,
+        lineStartTimesMs: detectedStartsMs,
+        lineStartTimesUnit: 'ms',
+      };
+    }
+  } catch (error) {
+    console.warn('Auto-detect line timings skipped:', error);
+  }
+
+  return payload;
+};
+
 const main = async () => {
   const payloadArg = process.argv[2];
   const outputArg = process.argv[3] ?? 'out/motivation-short.mp4';
@@ -62,7 +186,8 @@ const main = async () => {
 
   const payloadPath = path.resolve(process.cwd(), payloadArg);
   const outputLocation = path.resolve(process.cwd(), outputArg);
-  const inputProps = await loadPayload(payloadPath);
+  const payload = await loadPayload(payloadPath);
+  const inputProps = await applyAutoDetectedLineStarts(payload);
 
   await fs.mkdir(path.dirname(outputLocation), {recursive: true});
 

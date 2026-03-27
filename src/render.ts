@@ -24,6 +24,10 @@ const assertValidLineTimes = (payload: RenderPayload) => {
     throw new Error('Invalid payload. lineStartTimesMs length must match lines length.');
   }
 
+  if (payload.lineStartTimesUnit && payload.lineStartTimesUnit !== 'ms' && payload.lineStartTimesUnit !== 's') {
+    throw new Error("Invalid payload. lineStartTimesUnit must be either 'ms' or 's'.");
+  }
+
   payload.lineStartTimesMs.forEach((time, index) => {
     if (typeof time !== 'number' || Number.isNaN(time) || time < 0) {
       throw new Error(`Invalid payload. lineStartTimesMs[${index}] must be a non-negative number.`);

@@ -4,4 +4,5 @@ export type RenderPayload = {
   music: string;
   lines: string[];
   lineStartTimesMs?: number[];
+  lineStartTimesUnit?: 'ms' | 's';
 };

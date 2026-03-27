@@ -63,18 +63,49 @@ const CaptionLine: React.FC<{
   );
 };
 
-const toFrame = (ms: number, fps: number) => Math.max(0, Math.round((ms / 1000) * fps));
+const toFrame = (ms: number, fps: number) => Math.max(0, Math.floor((ms / 1000) * fps));
+
+const normalizeLineStartTimesMs = ({
+  lineStartTimesMs,
+  lineStartTimesUnit,
+  durationInFrames,
+  fps,
+}: {
+  lineStartTimesMs: number[];
+  lineStartTimesUnit?: 'ms' | 's';
+  durationInFrames: number;
+  fps: number;
+}) => {
+  if (lineStartTimesUnit === 's') {
+    return lineStartTimesMs.map((value) => value * 1000);
+  }
+
+  if (lineStartTimesUnit === 'ms') {
+    return lineStartTimesMs;
+  }
+
+  const maxValue = Math.max(...lineStartTimesMs);
+  const durationInSeconds = durationInFrames / fps;
+
+  if (maxValue <= durationInSeconds + 2) {
+    return lineStartTimesMs.map((value) => value * 1000);
+  }
+
+  return lineStartTimesMs;
+};
 
 const buildCaptionTimeline = ({
   lines,
   durationInFrames,
   fps,
   lineStartTimesMs,
+  lineStartTimesUnit,
 }: {
   lines: string[];
   durationInFrames: number;
   fps: number;
   lineStartTimesMs?: number[];
+  lineStartTimesUnit?: 'ms' | 's';
 }) => {
   const safeLines = lines.length > 0 ? lines : [''];
 
@@ -90,10 +121,17 @@ const buildCaptionTimeline = ({
     }));
   }
 
+  const normalizedStartTimesMs = normalizeLineStartTimesMs({
+    lineStartTimesMs,
+    lineStartTimesUnit,
+    durationInFrames,
+    fps,
+  });
+
   return safeLines.map((text, index) => {
-    const startFrame = toFrame(lineStartTimesMs[index], fps);
+    const startFrame = toFrame(normalizedStartTimesMs[index], fps);
     const nextStartFrame =
-      index < safeLines.length - 1 ? toFrame(lineStartTimesMs[index + 1], fps) : durationInFrames;
+      index < safeLines.length - 1 ? toFrame(normalizedStartTimesMs[index + 1], fps) : durationInFrames;
 
     return {
       text,
@@ -109,6 +147,7 @@ export const VerticalMotivationVideo: React.FC<RenderPayload> = ({
   music,
   lines,
   lineStartTimesMs,
+  lineStartTimesUnit,
 }) => {
   const {durationInFrames, fps} = useVideoConfig();
   const backgroundSource = toMediaSource(background);
@@ -117,6 +156,7 @@ export const VerticalMotivationVideo: React.FC<RenderPayload> = ({
     durationInFrames,
     fps,
     lineStartTimesMs,
+    lineStartTimesUnit,
   });
 
   return (

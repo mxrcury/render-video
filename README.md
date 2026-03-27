@@ -43,16 +43,18 @@ Add your input assets into `public/` using the filenames referenced by the JSON 
     "Small pain. Lasting value.",
     "Decide."
   ],
-  "lineStartTimesMs": [0, 1300, 2600, 3900, 5300, 6700, 7900, 9300, 10600]
+  "lineStartTimesMs": [0, 1300, 2600, 3900, 5300, 6700, 7900, 9300, 10600],
+  "lineStartTimesUnit": "ms"
 }
 ```
 
 ### Subtitle sync
 
 - `lineStartTimesMs` is optional but recommended for precise subtitle sync.
-- When provided, each subtitle appears exactly at its timestamp (milliseconds from voice start).
+- `lineStartTimesUnit` can be `"ms"` or `"s"` (optional).
+- If `lineStartTimesUnit` is omitted, the renderer auto-detects `s` vs `ms` to reduce timing mismatch.
 - `lineStartTimesMs.length` must match `lines.length` and be sorted ascending.
-- If omitted, captions are split evenly across the total video duration.
+- If timing data is omitted, captions are split evenly across the total video duration.
 
 ## Install
 

@@ -110,15 +110,25 @@ const buildCaptionTimeline = ({
   const safeLines = lines.length > 0 ? lines : [''];
 
   if (!lineStartTimesMs || lineStartTimesMs.length !== safeLines.length) {
-    const framesPerLine = Math.max(1, Math.floor(durationInFrames / safeLines.length));
-    return safeLines.map((text, index) => ({
-      text,
-      startFrame: index * framesPerLine,
-      durationInFrames:
-        index === safeLines.length - 1
-          ? durationInFrames - index * framesPerLine
-          : framesPerLine,
-    }));
+    const textWeights = safeLines.map((line) => Math.max(1, line.trim().length));
+    const totalWeight = textWeights.reduce((sum, value) => sum + value, 0);
+
+    const startFrames = textWeights.map((_, index) => {
+      const consumedWeight = textWeights.slice(0, index).reduce((sum, value) => sum + value, 0);
+      return Math.floor((consumedWeight / totalWeight) * durationInFrames);
+    });
+
+    return safeLines.map((text, index) => {
+      const startFrame = startFrames[index];
+      const nextStartFrame =
+        index === safeLines.length - 1 ? durationInFrames : Math.max(startFrame + 1, startFrames[index + 1]);
+
+      return {
+        text,
+        startFrame,
+        durationInFrames: Math.max(1, nextStartFrame - startFrame),
+      };
+    });
   }
 
   const normalizedStartTimesMs = normalizeLineStartTimesMs({

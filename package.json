@@ -1,0 +1,25 @@
+{
+  "name": "render-video",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "render": "tsx src/render.ts",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.288"
+  },
+  "devDependencies": {
+    "@remotion/bundler": "^4.0.288",
+    "@remotion/media-utils": "^4.0.288",
+    "@remotion/renderer": "^4.0.288",
+    "@types/node": "^24.0.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.3"
+  }
+}

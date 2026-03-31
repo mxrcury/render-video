@@ -10,6 +10,7 @@ import {
   useVideoConfig,
 } from 'remotion';
 import {toMediaSource} from './media';
+import {generateSubtitleTiming} from './subtitleTiming';
 import type {RenderPayload} from './types';
 
 const isVideoFile = (fileName: string) => /\.(mp4|mov|webm|m4v)$/i.test(fileName);
@@ -21,13 +22,20 @@ const CaptionLine: React.FC<{
 }> = ({text, startFrame, durationInFrames}) => {
   const frame = useCurrentFrame();
   const localFrame = frame - startFrame;
+  const fadeFrames = 8;
 
-  const opacity = interpolate(localFrame, [0, 12], [0, 1], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
-  });
+  const fadeOutStart = Math.max(fadeFrames, durationInFrames - fadeFrames);
+  const opacity = interpolate(
+    localFrame,
+    [0, fadeFrames, fadeOutStart, durationInFrames],
+    [0, 1, 1, 0],
+    {
+      extrapolateLeft: 'clamp',
+      extrapolateRight: 'clamp',
+    },
+  );
 
-  const translateY = interpolate(localFrame, [0, 12], [24, 0], {
+  const translateY = interpolate(localFrame, [0, fadeFrames], [24, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
@@ -110,25 +118,13 @@ const buildCaptionTimeline = ({
   const safeLines = lines.length > 0 ? lines : [''];
 
   if (!lineStartTimesMs || lineStartTimesMs.length !== safeLines.length) {
-    const textWeights = safeLines.map((line) => Math.max(1, line.trim().length));
-    const totalWeight = textWeights.reduce((sum, value) => sum + value, 0);
+    const generated = generateSubtitleTiming(safeLines);
 
-    const startFrames = textWeights.map((_, index) => {
-      const consumedWeight = textWeights.slice(0, index).reduce((sum, value) => sum + value, 0);
-      return Math.floor((consumedWeight / totalWeight) * durationInFrames);
-    });
-
-    return safeLines.map((text, index) => {
-      const startFrame = startFrames[index];
-      const nextStartFrame =
-        index === safeLines.length - 1 ? durationInFrames : Math.max(startFrame + 1, startFrames[index + 1]);
-
-      return {
-        text,
-        startFrame,
-        durationInFrames: Math.max(1, nextStartFrame - startFrame),
-      };
-    });
+    return safeLines.map((text, index) => ({
+      text,
+      startFrame: toFrame(generated.lineStartTimesMs[index], fps),
+      durationInFrames: Math.max(1, toFrame(generated.lineDurationsMs[index], fps)),
+    }));
   }
 
   const normalizedStartTimesMs = normalizeLineStartTimesMs({

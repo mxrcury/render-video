@@ -58,7 +58,7 @@ Add your input assets into `public/` using the filenames referenced by the JSON 
 - If `lineStartTimesUnit` is omitted, the renderer auto-detects `s` vs `ms` to reduce timing mismatch.
 - `lineStartTimesMs.length` must match `lines.length` and be sorted ascending.
 - If `lineStartTimesMs` is provided, it always takes priority and auto-detection is skipped.
-- If timing data is omitted, captions are auto-generated from voice pauses (or weighted by text length if detection is unavailable).
+- If timing data is omitted, captions are generated deterministically from script text pacing (base + per-word + pause + impact-line boost).
 
 ## Install
 

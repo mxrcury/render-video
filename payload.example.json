@@ -14,19 +14,5 @@
     "What you repeat",
     "becomes your life.",
     "Choose wisely."
-  ],
-  "lineStartTimesMs": [
-    0,
-    1200,
-    2100,
-    3300,
-    4200,
-    5100,
-    6200,
-    7900,
-    9000,
-    10200,
-    11500
-  ],
-  "lineStartTimesUnit": "ms"
+  ]
 }

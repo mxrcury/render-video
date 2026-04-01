@@ -4,12 +4,12 @@ export type SubtitleTiming = {
   totalDurationMs: number;
 };
 
-const BASE_DURATION_MS = 2200;
-const PER_WORD_MS = 550;
-const INTER_LINE_PAUSE_MS = 350;
-const MIN_LINE_DURATION_MS = 2600;
-const MAX_LINE_DURATION_MS = 7600;
-const IMPACT_LINE_BONUS_MS = 1400;
+const BASE_DURATION_MS = 950;
+const PER_WORD_MS = 220;
+const INTER_LINE_PAUSE_MS = 140;
+const MIN_LINE_DURATION_MS = 1300;
+const MAX_LINE_DURATION_MS = 3600;
+const IMPACT_LINE_BONUS_MS = 420;
 
 const IMPACT_LINES = new Set(['decide.', 'start.', 'now.', 'go.', 'act.', 'begin.']);
 

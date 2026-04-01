@@ -45,20 +45,17 @@ Add your input assets into `public/` using the filenames referenced by the JSON 
     "becomes your life.",
     "Choose wisely."
   ],
-  "lineStartTimesMs": [0, 1200, 2100, 3300, 4200, 5100, 6200, 7900, 9000, 10200, 11500],
-  "lineStartTimesUnit": "ms"
+  "voiceTranscript": "voice-transcript.json"
 }
 ```
 
 ### Subtitle sync
 
-- `lineStartTimesMs` is optional but recommended for precise subtitle sync.
-- `lineStartTimesUnit` can be `"ms"` or `"s"` (optional).
-- `autoDetectLineStartTimesFromVoice` (optional, default `true` when `lineStartTimesMs` is missing) tries to detect phrase starts from narration audio pauses using `ffmpeg`.
-- If `lineStartTimesUnit` is omitted, the renderer auto-detects `s` vs `ms` to reduce timing mismatch.
-- `lineStartTimesMs.length` must match `lines.length` and be sorted ascending.
-- If `lineStartTimesMs` is provided, it always takes priority and auto-detection is skipped.
-- If timing data is omitted, captions are generated deterministically from script text pacing (base + per-word + pause + impact-line boost).
+- `lineStartTimesMs` + `lineDurationsMs` can be provided directly (manual timing mode).
+- Or provide `voiceTranscript` JSON (ElevenLabs transcript/timestamps) and timings are derived from transcript data.
+- Supported transcript shapes: `segments[]` with `start/end` or `words[]` with `start/end`.
+- `lineStartTimesMs` / `lineDurationsMs` (if provided) must match `lines.length`.
+- Timing is no longer estimated from text length; transcript timestamps are the source of truth when manual timings are absent.
 
 ## Install
 
@@ -78,8 +75,6 @@ The renderer will:
 - read the payload,
 - calculate the composition duration from the narration audio,
 - render the vertical MP4 via `renderMedia()`.
-
-If ffmpeg is available, subtitle starts can be inferred directly from narration silence boundaries. If ffmpeg is missing, rendering continues with fallback timing and no crash.
 
 ## Notes
 

@@ -10,7 +10,6 @@ import {
   useVideoConfig,
 } from 'remotion';
 import {toMediaSource} from './media';
-import {generateSubtitleTiming} from './subtitleTiming';
 import type {RenderPayload} from './types';
 
 const isVideoFile = (fileName: string) => /\.(mp4|mov|webm|m4v)$/i.test(fileName);
@@ -107,24 +106,20 @@ const buildCaptionTimeline = ({
   durationInFrames,
   fps,
   lineStartTimesMs,
+  lineDurationsMs,
   lineStartTimesUnit,
 }: {
   lines: string[];
   durationInFrames: number;
   fps: number;
   lineStartTimesMs?: number[];
+  lineDurationsMs?: number[];
   lineStartTimesUnit?: 'ms' | 's';
 }) => {
   const safeLines = lines.length > 0 ? lines : [''];
 
   if (!lineStartTimesMs || lineStartTimesMs.length !== safeLines.length) {
-    const generated = generateSubtitleTiming(safeLines);
-
-    return safeLines.map((text, index) => ({
-      text,
-      startFrame: toFrame(generated.lineStartTimesMs[index], fps),
-      durationInFrames: Math.max(1, toFrame(generated.lineDurationsMs[index], fps)),
-    }));
+    throw new Error('Subtitle timing is required. Provide lineStartTimesMs or transcript-derived timing.');
   }
 
   const normalizedStartTimesMs = normalizeLineStartTimesMs({
@@ -136,13 +131,22 @@ const buildCaptionTimeline = ({
 
   return safeLines.map((text, index) => {
     const startFrame = toFrame(normalizedStartTimesMs[index], fps);
+    const durationByProvidedMs =
+      lineDurationsMs && lineDurationsMs.length === safeLines.length
+        ? toFrame(lineDurationsMs[index], fps)
+        : null;
     const nextStartFrame =
       index < safeLines.length - 1 ? toFrame(normalizedStartTimesMs[index + 1], fps) : durationInFrames;
+
+    const cueDurationInFrames =
+      durationByProvidedMs !== null
+        ? Math.max(1, Math.min(durationByProvidedMs, nextStartFrame - startFrame))
+        : Math.max(1, nextStartFrame - startFrame);
 
     return {
       text,
       startFrame,
-      durationInFrames: Math.max(1, nextStartFrame - startFrame),
+      durationInFrames: cueDurationInFrames,
     };
   });
 };
@@ -153,6 +157,7 @@ export const VerticalMotivationVideo: React.FC<RenderPayload> = ({
   music,
   lines,
   lineStartTimesMs,
+  lineDurationsMs,
   lineStartTimesUnit,
 }) => {
   const {durationInFrames, fps} = useVideoConfig();
@@ -162,6 +167,7 @@ export const VerticalMotivationVideo: React.FC<RenderPayload> = ({
     durationInFrames,
     fps,
     lineStartTimesMs,
+    lineDurationsMs,
     lineStartTimesUnit,
   });
 

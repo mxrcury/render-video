@@ -1,0 +1,15 @@
+{
+  "segments": [
+    {"start": 0.0, "end": 1.2, "text": "You think you need luck."},
+    {"start": 1.35, "end": 2.0, "text": "You don’t."},
+    {"start": 2.1, "end": 3.4, "text": "You need discipline."},
+    {"start": 3.6, "end": 4.3, "text": "Daily."},
+    {"start": 4.5, "end": 5.1, "text": "Boring."},
+    {"start": 5.3, "end": 6.1, "text": "Consistent."},
+    {"start": 6.3, "end": 7.8, "text": "Luck doesn’t build results."},
+    {"start": 8.0, "end": 8.8, "text": "Habits do."},
+    {"start": 9.0, "end": 9.8, "text": "What you repeat"},
+    {"start": 9.95, "end": 10.9, "text": "becomes your life."},
+    {"start": 11.1, "end": 11.9, "text": "Choose wisely."}
+  ]
+}
